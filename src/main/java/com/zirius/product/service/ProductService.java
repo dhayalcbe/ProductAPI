@@ -49,12 +49,15 @@ public class ProductService {
 
 	@Transactional
 	public ResponseEntity<ProductResponse> createProduct(ProductDTO productDTO) {
+		log.info("START:> createProduct");
 		ProductResponse productResponse;
+		log.debug("START of Rest template:> Calling Review API");
 		RestTemplate restTemplate = new RestTemplate();
 		ResponseEntity<ReviewGroupResponse> reviewGroupResponseEntity = restTemplate.postForEntity(
 				Constants.REVIEW_GROUP_ENDPOINT, ReviewGroup.builder().topic(productDTO.getName()).build(),
 				ReviewGroupResponse.class);
 		ReviewGroupResponse reviewGroupResponse = reviewGroupResponseEntity.getBody();
+		log.debug("END of Rest template:> Review API");
 		if (null != reviewGroupResponse && reviewGroupResponseEntity.getStatusCodeValue() == 201) {
 			Product product = productMapper.toProduct(productDTO);
 			product.setReviewGroupId(reviewGroupResponse.getReviewGroupId());
@@ -65,12 +68,13 @@ public class ProductService {
 			productResponse = setProductResponse(HttpStatus.INTERNAL_SERVER_ERROR, Constants.PRODUCT_CREATION_FAILED,
 					null, ErrorDetails.builder().errorMessage(Constants.FAILED_TO_CREATE_REVIEW_GROUP).build());
 		}
-
+		log.info("END:> createProduct");
 		return ResponseEntity.status(productResponse.getStatus()).body(productResponse);
 	}
 
 	@Transactional
 	public ResponseEntity<ProductResponse> updateProduct(Long id, ProductDTO productDTO) {
+		log.info("START:> updateProduct");
 		ProductResponse productResponse;
 		Optional<Product> product = productRepository.findById(id);
 		if (product.isPresent()) {
@@ -82,20 +86,24 @@ public class ProductService {
 			productResponse = setProductResponse(HttpStatus.BAD_REQUEST, Constants.PRODUCT_UPDATE_FAILED, null,
 					ErrorDetails.builder().errorMessage(Constants.NO_PRODUCT_FOUND_FOR_GIVEN_ID).build());
 		}
+		log.info("END:> updateProduct");
 		return ResponseEntity.status(productResponse.getStatus()).body(productResponse);
 	}
 
 	@Transactional
 	public ResponseEntity<ProductReviewResponse> createReviews(Long id, ProductReviewsDTO productReviewsDTO) {
+		log.info("START:> createReviews");
 		ProductReviewResponse productReviewResponse;
 		Optional<Product> product = productRepository.findById(id);
 		if (product.isPresent()) {
 			List<ReviewDTO> reviewDTOs = productMapper.toReviewDTOs(product.get().getReviewGroupId(),
 					productReviewsDTO.getReviews());
 			ReviewsDTO reviewsDTO = ReviewsDTO.builder().reviews(reviewDTOs).build();
+			log.debug("START of rest template:> Create reviews using Review API");
 			RestTemplate restTemplate = new RestTemplate();
 			ResponseEntity<ReviewResponse> reviewResponseEntity = restTemplate.postForEntity(Constants.REVIEW_ENDPOINT,
 					reviewsDTO, ReviewResponse.class);
+			log.debug("END of rest template:> Response received from Review API");
 			ReviewResponse reviewResponse = reviewResponseEntity.getBody();
 			if (null != reviewResponse && reviewResponseEntity.getStatusCodeValue() == 201) {
 				productReviewResponse = setProductReviewResponse(HttpStatus.CREATED,
@@ -111,12 +119,13 @@ public class ProductService {
 			productReviewResponse = setProductReviewResponse(HttpStatus.BAD_REQUEST, Constants.FAILED_TO_CREATE_REVIEWS,
 					null, ErrorDetails.builder().errorMessage(Constants.NO_PRODUCT_FOUND_FOR_GIVEN_ID).build());
 		}
-
+		log.info("END:> createReviews");
 		return ResponseEntity.status(productReviewResponse.getStatus()).body(productReviewResponse);
 
 	}
 
 	public ResponseEntity<ProductDetailsResponse> getProductDetails(Long id) {
+		log.info("START:> getProductDetails");
 		ProductDetailsResponse productDetailsResponse;
 		ProductDetailsDTO productDetailsDTO = null;
 		Optional<Product> product = productRepository.findById(id);
@@ -134,10 +143,12 @@ public class ProductService {
 					Constants.FAILED_TO_RETRIEVE_PRODUCT_DETAILS, null,
 					ErrorDetails.builder().errorMessage(Constants.NO_PRODUCT_FOUND_FOR_GIVEN_ID).build());
 		}
+		log.info("END:> getProductDetails");
 		return ResponseEntity.status(productDetailsResponse.getStatus()).body(productDetailsResponse);
 	}
 
 	private ReviewResponse retrieveReviews(Long reviewGroupId) {
+		log.debug("START of Rest Template:> Retrieving reviews from Review API");
 		RestTemplate restTemplate = new RestTemplate();
 		HttpHeaders headers = new HttpHeaders();
 		headers.set("Accept", MediaType.APPLICATION_JSON_VALUE);
@@ -146,10 +157,12 @@ public class ProductService {
 		HttpEntity<?> entity = new HttpEntity<>(headers);
 		ResponseEntity<ReviewResponse> reviewResponseEntity = restTemplate.exchange(reviewURIBuilder.toUriString(),
 				HttpMethod.GET, entity, ReviewResponse.class);
+		log.debug("END of Rest Template:> Got response from Review API");
 		return reviewResponseEntity.getBody();
 	}
 
 	private AverageRatingResponse retrieveAverageRating(Long reviewGroupId) {
+		log.debug("START of Rest Template:> Retrieving average rating from Review API");
 		RestTemplate restTemplate = new RestTemplate();
 		HttpHeaders headers = new HttpHeaders();
 		headers.set("Accept", MediaType.APPLICATION_JSON_VALUE);
@@ -158,6 +171,7 @@ public class ProductService {
 		HttpEntity<?> entity = new HttpEntity<>(headers);
 		ResponseEntity<AverageRatingResponse> reviewResponseEntity = restTemplate
 				.exchange(reviewURIBuilder.toUriString(), HttpMethod.GET, entity, AverageRatingResponse.class);
+		log.debug("END of Rest Template:> Got response from Review API");
 		return reviewResponseEntity.getBody();
 	}
 

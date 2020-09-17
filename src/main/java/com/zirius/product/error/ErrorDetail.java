@@ -1,6 +1,6 @@
 package com.zirius.product.error;
 
-import java.util.List;
+import java.io.Serializable;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -11,10 +11,11 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ErrorDetails {
-		
-	private String errorMessage;
-	
-	private List<ErrorDetail> errorDetails;
+public class ErrorDetail {
 
+	private String parameter;
+	
+	private String code;
+	
+	private String description;
 }
