@@ -1,14 +1,15 @@
 package com.zirius.product.dto;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ProductResponse extends Response {
+public class ProductDetailsResponse extends Response {
 
-	private ProductDTO product;
-	
+	private ProductDetailsDTO products;
 }
